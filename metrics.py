@@ -7,13 +7,9 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import decimal
 
-# 我们将图像分割指标分成5个类别：
-# 比如：基于像素的，基于类内重合度的，基于边缘的，基于聚类的 和 基于实例的
 # We grouped image segmentation metrics into five groups:
 # Such as pixel based, region based, boundary based, clustering based, instance based
 
-# 注意：
-# 对于下列所有方法，pred是分割结果，mask是真值，所有像素的值为整数，且在[0,C], C为分割类别
 # Note:
 # For all the metrics below, pred is the segmentation result of certain method and
 # mask is the ground truth. The value is integer and range from [0, C], where C is
@@ -33,7 +29,7 @@ def get_metric(metric_name: str, output: np.array, label: np.array) -> float:
         temp_metric = get_ari(output, label)
     elif metric_name == 'MAP':
         temp_metric = get_map_2018kdsb(output, label)
-    elif metric_name == 'GRAIN':  # 晶粒度
+    elif metric_name == 'GRAIN':  
         temp_metric = GrainSize(output)
     return temp_metric
 
@@ -47,44 +43,28 @@ def GrainSize(img, M=100):
     计算公式 G = 6.643856 * lg((M*P_avg)/L) - 3.288
     return:奥氏体平均晶粒度G
     """
-    row_length = img.shape[0]  # 宽
-    col_length = img.shape[1]  # 长
+    row_length = img.shape[0]  
+    col_length = img.shape[1]  
     print(row_length, col_length)
-    # L=0.1094um*5520 = 603.888um
     L = 0.603888
-    # L = row_length
     list_row = []
-    # 三条截线初始位置(这里是竖着划线，截断长的边
     for i in range(3):
         temp = row_length * (i + 1) * 0.25
         list_row.append(int(temp))
-    # print(list_row)
-    # 获取截点
+
     P = [0, 0, 0]
     for i in range(3):
         count = 0
-        # print(i, len(img[list_row[i]]))
-        # print(img[list_row[i]].shape)
         for j in img[list_row[i]]:
-            # if img[list_row[i]][count][0] != img[list_row[i]][count + 1][0]:
-            # print(j)
-            # 截断长边的时候
-            # if img[count][list_row[i]] != img[count + 1][list_row[i]]:
-            # 截断短边的时候
             if img[list_row[i]][count] != img[list_row[i]][count + 1]:
                 P[i] += 1
             count += 1
-            # print(count)
             if count == col_length - 1:
                 break
-    # print(count, "done!")
-
     P_avg = (P[0] + P[1] + P[2]) / (3 * 2)
 
-    #  计算晶粒度G，这里有问题啊啊
     G = 6.643856 * math.log((M * P_avg) / L, 10) - 3.288
-    # G = decimal.Decimal(G).quantize(decimal.Decimal("0.0001"))
-    print("计算得到的晶粒度：", G)
+    print("Grain Size", G)
     return math.fabs(G)
 
 
@@ -109,7 +89,7 @@ def get_total_evaluation(pred: np.ndarray, mask: np.ndarray, require_edge: bool 
     return metric_values
 
 
-# ************** 基于像素的评估 Pixel based evaluation **************
+# **************Pixel based evaluation **************
 # pixel accuracy, mean accuracy
 def get_pixel_accuracy(pred: np.ndarray, mask: np.ndarray) -> float:
     """
@@ -146,7 +126,7 @@ def get_mean_accuracy(pred: np.ndarray, mask: np.ndarray) -> float:
     return value
 
 
-# ************** 基于类内重合度的评估 Region based evaluation **************
+# ************** Region based evaluation **************
 # Mean IOU (mIOU), Frequency weighted IOU(FwIOU), Dice score
 def get_iou(pred: np.ndarray, mask: np.ndarray) -> float:
     """
@@ -204,7 +184,7 @@ def get_dice(pred: np.ndarray, mask: np.ndarray) -> float:
     return value
 
 
-# ************** 基于边缘的评估 boundary based evaluation **************
+# ************** boundary based evaluation **************
 # figure of merit
 def get_figure_of_merit(pred: np.ndarray, mask: np.ndarray, boundary_value: int = 0, const_index: float = 0.1) -> float:
     """
@@ -322,7 +302,7 @@ def get_quality(pred: np.ndarray, mask: np.ndarray, theta: float = 2.0, boundary
     return f_score
 
 
-# ************** 基于聚类的评估 Clustering based evaluation **************
+# ************** Clustering based evaluation **************
 # Rand Index (RI), Adjusted Rand Index (ARI) and Variation of Information (VI)
 def get_ri(pred: np.ndarray, mask: np.ndarray, bg_value: int = 0) -> float:
     """
@@ -370,7 +350,7 @@ def get_vi(pred: np.ndarray, mask: np.ndarray, bg_value: int = 0, method: int = 
     return merger_error, split_error, vi
 
 
-# ************** 基于实例的评估 Instance based evaluation **************
+# ************** Instance based evaluation **************
 # cardinality difference, MAP
 def get_cardinality_difference(pred: np.ndarray, mask: np.ndarray, bg_value: int = 0) -> float:
     """
@@ -396,7 +376,6 @@ def get_map_2018kdsb(pred: np.ndarray, mask: np.ndarray, bg_value: int = 0) -> f
     Referenced from 2018 kaggle data science bowl:N
     https://www.kaggle.com/c/data-science-bowl-2018/overview/evaluation
     """
-    # 阈值范围从0.5到0.95
     thresholds = np.array([0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
     tp = np.zeros(10)
 
@@ -404,30 +383,19 @@ def get_map_2018kdsb(pred: np.ndarray, mask: np.ndarray, bg_value: int = 0) -> f
     label_mask_show = color.label2rgb(label_mask)
     label_pred, num_pred = label(pred, connectivity=1, background=bg_value, return_num=True)
     label_pred_show = color.label2rgb(label_pred)
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
-    # ax1.imshow(label_mask_show, interpolation='nearest')
-    # ax1.axis('off')
-    # ax2.imshow(label_pred_show, interpolation='nearest')
-    # ax2.axis('off')
 
     plt.figure(figsize=(20, 20))
     plt.subplot(1, 2, 1), plt.imshow(label_mask_show), plt.title("mask"), plt.axis("off")
     plt.subplot(1, 2, 2), plt.imshow(label_pred_show), plt.title("label"), plt.axis("off")
-    # plt.subplot(1, 3, 3), plt.imshow(output, cmap="gray"), plt.title("output"), plt.axis("off")
-
-    # plt.savefig(str(Path(test_vis_path, img_name)))
     plt.show()
 
-    # print("num_pred", num_pred)
-    # print("num_mask", num_mask)
-    # 默认不计算背景的ap值
     for i_pred in range(1, num_pred + 1):
-        intersect_mask_labels = list(np.unique(label_mask[label_pred == i_pred]))  # 获得与之相交的所有label
-        # 对与其相交的的所有mask label计算iou，后取其最值
+        intersect_mask_labels = list(np.unique(label_mask[label_pred == i_pred]))  
+
         if 0 in intersect_mask_labels:
             intersect_mask_labels.remove(0)
 
-        if len(intersect_mask_labels) == 0:  # 如果pred的某一个label没有与之对应的mask的label,则继续下一个label
+        if len(intersect_mask_labels) == 0:  
             continue
 
         intersect_mask_label_area = np.zeros((len(intersect_mask_labels), 1))
@@ -438,16 +406,11 @@ def get_map_2018kdsb(pred: np.ndarray, mask: np.ndarray, bg_value: int = 0) -> f
             union_mask_label_area[index, 0] = np.count_nonzero((label_mask == i_mask) | (label_pred == i_pred))
         iou = intersect_mask_label_area / union_mask_label_area
         max_iou = np.max(iou, axis=0)
-        # 根据最值将tp赋值
         # Assumption: There is only a region whose IOU > 0.5 for target region
         tp[thresholds < max_iou] = tp[thresholds < max_iou] + 1
     print(tp)
     fp = num_pred - tp
     fn = num_mask - tp
-    tn = 0
-    # print("Precision: ", np.average(tp / (tp + fp)))
-    # print("Recall: ", np.average(tp / (tp + fn)))
-    # print("Accuracy: ", np.average((tp + tn) / (tp + fp + tn + fn)))
     value = np.average(tp / (tp + fp + fn))
     return value
 
@@ -459,34 +422,21 @@ def get_map_2018kdsb_binary(pred: np.ndarray, mask: np.ndarray, bg_value: int = 
     Referenced from 2018 kaggle data science bowl:N
     https://www.kaggle.com/c/data-science-bowl-2018/overview/evaluation
     """
-    # 阈值范围从0.5到0.95
     thresholds = np.array([0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95])
     tp = np.zeros(10)
 
-# 因为只有两个图像，所以不进行label也可以，只看是实际为1的区域的重合程度
-#     label_mask, num_mask = label(mask, connectivity=1, background=bg_value, return_num=True)
-    # label_mask_show = color.label2rgb(label_mask)
-    # label_pred, num_pred = label(pred, connectivity=1, background=bg_value, return_num=True)
-    # label_pred_show = color.label2rgb(label_pred)
-    # 写死label
     label_mask = mask
     num_mask = 1
     label_pred = pred
     num_pred = 1
-    # # 展示label效果
-    # plt.figure(figsize=(20, 20))
-    # plt.subplot(1, 2, 1), plt.imshow(label_mask_show), plt.title("mask"), plt.axis("off")
-    # plt.subplot(1, 2, 2), plt.imshow(label_pred_show), plt.title("label"), plt.axis("off")
-    # plt.show()
 
-    # 默认不计算背景的ap值，因为这个数据里面label只有0和1两个值
     for i_pred in range(1, num_pred + 1):
-        intersect_mask_labels = list(np.unique(label_mask[label_pred == i_pred]))  # 获得与之相交的所有label的值
-        # 对与其相交的的所有mask label计算iou，后取其最值
+        intersect_mask_labels = list(np.unique(label_mask[label_pred == i_pred])) 
+
         if 0 in intersect_mask_labels:
             intersect_mask_labels.remove(0)
 
-        if len(intersect_mask_labels) == 0:  # 如果pred的某一个label没有与之对应的mask的label,则继续下一个label
+        if len(intersect_mask_labels) == 0:  
             continue
 
         intersect_mask_label_area = np.zeros((len(intersect_mask_labels), 1))
@@ -497,7 +447,6 @@ def get_map_2018kdsb_binary(pred: np.ndarray, mask: np.ndarray, bg_value: int = 
             union_mask_label_area[index, 0] = np.count_nonzero((label_mask == i_mask) | (label_pred == i_pred))
         iou = intersect_mask_label_area / union_mask_label_area
         max_iou = np.max(iou, axis=0)
-        # 根据最值将tp赋值
         # Assumption: There is only a region whose IOU > 0.5 for target region
         tp[thresholds < max_iou] = tp[thresholds < max_iou] + 1
     print('tp:', tp)
