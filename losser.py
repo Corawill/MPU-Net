@@ -32,7 +32,4 @@ class WeightMapLoss(nn.Module):
         for idx in range(class_num):
             if weight_maps.dim() == 4:
                 loss += -1 * weight_maps[:, idx, :, :] * (torch.log(logit[:, idx, :, :]) + eps)
-
-            elif weight_maps.dim() == 5:
-                loss += -1 * weight_maps[:, idx, :, :, :] * (torch.log(logit[:, idx, :, :, :]) + eps)
         return loss.sum() / weight_maps.sum()

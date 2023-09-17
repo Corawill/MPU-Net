@@ -1,4 +1,3 @@
-#%%
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -10,7 +9,7 @@ import cv2
 
 from model.nets.mpunet import MPUNet
 import torch.nn.functional as F
-from post_proc import boundary_proc, xcx_proc, save_image
+from post_proc import boundary_proc, xcx_proc
 
 
 def read_image(image_path):
@@ -25,10 +24,10 @@ def read_image(image_path):
 def inference(weight_path, root_path, save_path, use_post_process = False):
     """
     推理
-    :param weight_path:  权重路径
-    :param root_path:  想要推理的文件根目录
-    :param save_path:  推理结果保存目录
-    :param proc_method:  处理方式，选择 boundary or xcx
+    :param weight_path:  weight path
+    :param root_path:  The root directory of the file you want to infer
+    :param save_path:  Inference result storage directory
+    :param use_post_process:
     :return:
     """
     root_path = Path(root_path)
@@ -47,10 +46,8 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
     net = MPUNet().to(device)
     if os.path.exists(weight_path):
         a, b = os.path.splitext(weight_path)
-        if b == '.pth':  # pth文件load
+        if b == '.pth': 
             net.load_state_dict({k.replace('module.', ''): v for k, v in torch.load(weight_path).items()})
-        elif b == '.params':  # params文件load
-            net.load_state_dict(torch.load(weight_path))
         else:
             print("Unsupported file type!")
         print('Model loaded successfully!')
@@ -102,11 +99,10 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
 
 
 if __name__ == '__main__':
-    weight_phta_path = '/root/data/zhangxinyi/data/gyy-state2-train/test-pth/OM_best_model_state.pth'
-    infer_path = '/root/data/zhangxinyi/data/gyy-state2-train/data/OM/test_img'
-    save_path = '/root/data/zhangxinyi/data/gyy-state2-train/infer/OM/'
+    weight_phta_path = './test-pth/OM_best_model_state.pth'
+    infer_path = './data/OM/test_img'
+    save_path = './infer/OM/'
 
-    # 晶界推理
     use_post_process = False
     inference(weight_phta_path, infer_path, save_path, use_post_process)
 # %%

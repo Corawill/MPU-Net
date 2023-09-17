@@ -3,7 +3,6 @@ import random
 import numpy as np
 import torch
 import math
-# from libtiff import TIFF
 from pathlib import Path
 from skimage import io
 from torch import Tensor
@@ -30,29 +29,6 @@ def setup_seed(seed: int) -> None:
     random.seed(seed)
     torch.backends.cudnn.deterministic = True  # implement same config in cpu and gpu
     torch.backends.cudnn.benchmark = True
-
-
-def count_mean_and_std(img_dir: Path,
-                       img_suffix: str) -> Tuple:  # (mean, std, num) (0.495770570343616, 0.16637932545720774, 22) for ISBI 2012
-    """
-        Calculate mean and std of data of original image
-    """
-    assert img_dir.is_dir(), "The input is not a dir"
-    mean, std, num = 0, 0, 0
-
-    # 把png图像读进来
-    imgs_path = img_dir.glob("*.{}".format(img_suffix))
-
-    for img_path in imgs_path:
-        num += 1
-        # import skimage as io用skimage读进来的，
-        img = io.imread(str(img_path), 0) * 1.0 / 255
-        assert np.max(np.unique(img)) <= 1, "The img value should lower than 1 when calculate mean and std"
-        mean += np.mean(img)
-        std += np.std(img)
-    mean /= num
-    std /= num
-    return mean, std, num
 
 
 def load_img(img_path: Path) -> np.ndarray:
@@ -179,7 +155,6 @@ class GpuDetector:
                 self._gpu_is_available = True
                 self._gpu_idx_in_use = gpu_idx
                 break
-        # Todo: the multi-gpus inference
 
     def set_gpu_device(self, gpu_idx: int):
         """
@@ -192,13 +167,11 @@ class GpuDetector:
         else:
             self._gpu_is_available = True
             self._gpu_idx_in_use = gpu_idx
-        # Todo: the multi-gpus inference 
 
     def get_current_gpu(self) -> Tuple:
         """
             Get current gpu status and gpu device
         """
-        # return self._gpu_is_available, self._gpu_idx_in_use
         return False, self._gpu_idx_in_use
 
     def __check_gpu_status(self, gpu_idx: int):
@@ -213,85 +186,3 @@ class GpuDetector:
                    0] >= 2.0, "The device capability of gpu {} with name {} is lower than 2.0".format(gpu_idx,
                                                                                                       torch.cuda.get_device_name(
                                                                                                           gpu_idx))
-
-
-class TestTimeAug:
-    """
-        Test Time Augmentation, you can add your own function in this class
-    """
-
-    def __init__(self, aug_type: int = 0):
-        self._aug_type = aug_type  # 0: no tta; 1: 4 variant(rotation), 2: eight variant(rotation and flip)
-
-    def aug_input(self, in_imgs: List) -> List:
-        """
-            Aug sub-imgs List and return a new List
-        """
-        in_aug_imgs = []
-        for in_img in in_imgs:
-            if self._aug_type >= 0:
-                in_aug_imgs.append(in_img.copy())
-            if self._aug_type >= 1:  # rotation 4 variants for one input
-                in_aug_imgs.append(
-                    np.rot90(in_img, 1).copy())  # if there is no copy, it will introduce error in network inference
-                in_aug_imgs.append(np.rot90(in_img, 2).copy())
-                in_aug_imgs.append(np.rot90(in_img, 3).copy())
-            if self._aug_type >= 2:  # rotation and flip 8 variants for one input
-                in_aug_imgs.append(np.flipud(in_img).copy())  # upper and down flip
-                in_aug_imgs.append(np.fliplr(in_img).copy())  # left and right flip
-                in_aug_imgs.append(np.flipud(np.rot90(in_img, 3)).copy())  # upper and down flip for 270 rotation
-                in_aug_imgs.append(np.fliplr(np.rot90(in_img, 3)).copy())  # left and right flip for 270 rotation
-        return in_aug_imgs
-
-    def merge_out(self, out_aug_imgs: List) -> List:
-        """
-            Merge aug List(Mean) and return sub-imgs List
-        """
-        out_imgs = []
-        tta_num = self._aug_type * 4  # for aug_type = 1, 4 variants, for aug_type = 2, 8 variants.
-        idx = 0
-        while idx < len(out_aug_imgs):
-            if self._aug_type >= 0:
-                sum_imgs = out_aug_imgs[idx].copy()
-            if self._aug_type >= 1:
-                sum_imgs = sum_imgs + np.rot90(out_aug_imgs[idx + 1], -1)
-                sum_imgs = sum_imgs + np.rot90(out_aug_imgs[idx + 2], -2)
-                sum_imgs = sum_imgs + np.rot90(out_aug_imgs[idx + 3], -3)
-            if self._aug_type >= 2:
-                sum_imgs = sum_imgs + np.flipud(out_aug_imgs[idx + 4])
-                sum_imgs = sum_imgs + np.fliplr(out_aug_imgs[idx + 5])
-                sum_imgs = sum_imgs + np.rot90(np.flipud(out_aug_imgs[idx + 6]), -3)
-                sum_imgs = sum_imgs + np.rot90(np.fliplr(out_aug_imgs[idx + 7]), -3)
-            if self._aug_type == 0:
-                out_imgs.append(sum_imgs)
-                idx = idx + 1
-            elif self._aug_type >= 1:
-                out_imgs.append(sum_imgs / tta_num)
-                idx = idx + tta_num
-        return out_imgs
-
-
-def check_label_num(labelpath, filename):
-    label = cv2.imread(labelpath + "/" + filename)
-    if np.unique(label).all() == 0:
-        plt.figure()
-        plt.imshow(label)
-        plt.show()
-        return -1
-    else:
-        return 1
-
-
-def remove_wrong_label(imgpath, labelpath):
-    for filename in os.listdir(imgpath):
-        if check_label_num(labelpath, filename) == -1:
-            print(filename)
-            # 需要remove这个图像
-            os.remove(imgpath + "/" + filename)
-            os.remove(labelpath + "/" + filename)
-
-
-if __name__ == '__main__':
-    img_path = '/root/data/gyy-state2/data/gangyanyuan-state2/images/'
-    label_path = '/root/data/gyy-state2/data/gangyanyuan-state2/labels/'
-    remove_wrong_label(img_path, label_path)

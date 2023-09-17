@@ -7,16 +7,7 @@ from utils import *
 from model.losses.bcw_loss import *
 from model.losses.uw_loss import *
 
-# The first step of deep learning experiment is data preprocessing.   
-
-def data_preprocess(dataset_name: str, in_path: Path, out_path: Path, zfill_num: int = 3, suffix: str = "png") -> None:
-    if dataset_name == "isbi2012":
-        print("isbi2012")
-    else:
-        return
-
-# 把数据集加载进来
-
+# load dataset
 def prepare_weight_map(labels_path: Path, out_path: Path, func_names: List, class_num: int = 2) -> None:
     """
         Generate the weight map in data directory, such as balanced class weight or unet weight
@@ -61,5 +52,4 @@ def prepare_weight_map(labels_path: Path, out_path: Path, func_names: List, clas
                 plt.subplot(1, class_num + 1, vis_idx + 2)
                 plt.imshow(weight[:, :, vis_idx]), plt.title("{} {}".format(func_name, vis_idx)), plt.axis("off")
             plt.show()
-            # print(str(Path(weight_path, file_name.replace('png', 'npy'))))
             np.save(str(Path(weight_path, file_name.replace("png", "npy"))), weight)
