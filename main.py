@@ -9,7 +9,8 @@ import cv2
 
 from model.nets.mpunet import MPUNet
 import torch.nn.functional as F
-from post_proc import boundary_proc, xcx_proc
+from post_proc import boundary_proc, xcx_proc,classical_boundary_proc
+from post_water import water_post
 
 
 def read_image(image_path):
@@ -62,6 +63,14 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
         image = image.to(device)
         image = image.unsqueeze(dim=0)
 
+        # label 
+        img_name = image_path.name
+        print(img_name)
+        print(Path(root_path.parent,"test_boundary_label",img_name))
+        label_xcx = cv2.imread(str(Path(root_path.parent,"test_xcx_label",img_name)),0)
+        label_boundary = cv2.imread(str(Path(root_path.parent,"test_boundary_label",img_name)),0)
+
+
         out_tensor, xcx_tensor = net(image)
         out_tensor = F.softmax(out_tensor, dim = 1)
         xcx_tensor = F.softmax(xcx_tensor, dim = 1)
@@ -71,12 +80,16 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
 
         out_img = np.argmax(out_tensor, axis=2).astype(np.uint8)
         xcx_img = np.argmax(xcx_tensor, axis=2).astype(np.uint8)
-        if use_post_process:
+        if use_post_process: # post-process include prun and adaptative strategy
+            classical_out_img = classical_boundary_proc(out_img) # classical_boundary_proc
             out_img = boundary_proc(out_img)
             xcx_img = xcx_proc(xcx_img)
+            water_out_img = water_post(img, out_img, xcx_img, thresh_iou=0.9)
+
 
         out_img[out_img>0] = 255
         xcx_img[xcx_img>0] = 255
+        water_out_img[water_out_img>0] = 255
 
         
         label_name = image_path.name
@@ -87,9 +100,12 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
         
         print(image_path.name)
         plt.figure(figsize=(20, 20))
-        plt.subplot(1, 3, 1), plt.imshow(img, cmap="gray"), plt.title("img"), plt.axis("off")
-        plt.subplot(1, 3, 2), plt.imshow(out_img, cmap="gray"), plt.title("output_boundary"), plt.axis("off")
-        plt.subplot(1, 3, 3), plt.imshow(xcx_img, cmap="gray"), plt.title("output_xcx"), plt.axis("off")
+        plt.subplot(2, 3, 1), plt.imshow(img, cmap="gray"), plt.title("img"), plt.axis("off")
+        plt.subplot(2, 3, 2), plt.imshow(label_xcx, cmap="gray"), plt.title("label_xcx"), plt.axis("off") # label xcx
+        plt.subplot(2, 3, 3), plt.imshow(xcx_img, cmap="gray"), plt.title("output_xcx"), plt.axis("off")
+        plt.subplot(2, 3, 4), plt.imshow(label_boundary, cmap="gray"), plt.title("label_boundary"), plt.axis("off")
+        plt.subplot(2, 3, 5), plt.imshow(classical_out_img, cmap="gray"), plt.title("classical_post_out_img"), plt.axis("off")
+        plt.subplot(2, 3, 6), plt.imshow(water_out_img, cmap="gray"), plt.title("ours_out_img"), plt.axis("off")
         plt.show()
 
         cv2.imwrite(str(Path(boundary_path, label_name)), out_img)
@@ -103,6 +119,5 @@ if __name__ == '__main__':
     infer_path = './data/OM/test_img'
     save_path = './infer/OM/'
 
-    use_post_process = False
+    use_post_process = True
     inference(weight_phta_path, infer_path, save_path, use_post_process)
-# %%

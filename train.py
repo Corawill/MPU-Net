@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torchvision.transforms as tr
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 import pandas as pd
 
 import metrics
@@ -142,6 +142,7 @@ class SegTrainer:
         
         self.data_experiment_path = data_experiment_path
         self.imgs_path = Path(data_experiment_path, "images")
+        print("imgs_path:------------------------------------",self.imgs_path)
         self.labels_path = Path(data_experiment_path, "labels")
         self.labels_xcx_path = Path(data_experiment_path, "labels_xcx")
         if self.loss_name in ["bcw", "uw"]:
@@ -150,6 +151,8 @@ class SegTrainer:
             self.weights_path = Path(data_experiment_path, "bcw")
         if use_preprocess:
             self.data_preprocess(data_experiment_path)
+        # print(list(self.imgs_path.glob("*.*")))
+        # print(list(self.imgs_path.glob("*.{}".format(self.imgs_suffix))))
         self.files_name = [str(item.name) for item in list(self.imgs_path.glob("*.{}".format(self.imgs_suffix)))]
 
         test_metrics = []
@@ -164,16 +167,20 @@ class SegTrainer:
         logger.log_print("Experiment: {}".format(experiment_name))
         print("start training!!!")
 
+        n_samples = len(self.files_name)
+        # print("len:files:",n_samples)
         # Dataset split
+        train_files, test_files = train_test_split(self.files_name, test_size=0.2, train_size= 0.8, random_state=self.seed_num)
+        # print(train_files)
         val_files = random.sample(list(train_files), int(len(train_files) * self.val_rate) + 1)
         train_files = list(set(train_files).difference(set(val_files)))
 
         train_files.sort()
         val_files.sort()
 
-        train_files = [self.files_name[item] for item in train_files]
-        val_files = [self.files_name[item] for item in val_files]
-        test_files = [self.files_name[item] for item in test_files]
+        # train_files = [self.files_name[item] for item in train_files]
+        # val_files = [self.files_name[item] for item in val_files]
+        # test_files = [self.files_name[item] for item in test_files]
 
         print("This is my train_files", len(train_files))
         print(train_files)

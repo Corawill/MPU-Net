@@ -120,14 +120,6 @@ def prun_xcx(image, kernel_size):
     return result
 
 
-def show(image):
-    image_show = image.copy()
-    image_show[image_show == 1] = 255
-    cv2.imshow('image', image_show)
-    cv2.waitKey()
-
-
-
 def boundary_proc(image):
     """
     Grain boundary post-processing operations
@@ -139,10 +131,20 @@ def boundary_proc(image):
     image = remove_small_objects(image, 20)
     image = dilate(image, 3)
     image = padding_img(image, element=1, pad_size=8)
-    t1 = time.time()
     image = prun(image, 8)
-    t2 = time.time()
-    print(t2-t1)
+    image = remove_small_objects(image, 100)
+    return image
+
+def classical_boundary_proc(image):
+    """
+    Grain boundary post-processing operations
+    :param image: 
+    :return:
+    """
+    image = dilate(image, 8)
+    image = skeletonize(image)
+    image = remove_small_objects(image, 20)
+    image = dilate(image, 3)
     image = remove_small_objects(image, 100)
     return image
 
@@ -184,7 +186,7 @@ if __name__ == '__main__':
         print(image_path.name)
 
         plt.figure("final image")
-        plt.imshow(pred)
+        plt.imshow(pred, cmap="gray")
         plt.show()
 
         pred[pred == 1] = 255

@@ -7,14 +7,6 @@ import matplotlib.pyplot as plt
 import datetime
 from post_proc import skeletonize, padding_img, dilate, boundary_proc
 
-def label_img(img):
-    '''
-    Label each grain
-    :param img:
-    :return: 
-    '''
-    img_map, num_label = measure.label(img, connectivity=1, background=0, return_num=True)
-    return img_map, num_label
 
 def post_overlap_grain(i, boundary_map, xcx_map):
     '''
@@ -128,22 +120,22 @@ def water_grain(i, j, boundary_map, xcx_map, img, thresh_iou):
     return [maker, x, y]
 
 
-def water_post(img_path, boundary_path, xcx_path, thresh_iou):  # todo
+def water_post(img, boundary, xcx, thresh_iou):  # todo
     '''
     :param img_path:
     :param boundary_path:
     :param xcx_path:
     :return:
     '''
-    xcx = cv2.imread(xcx_path, 0)
-    img = cv2.imread(img_path, 0)
-    boundary = cv2.imread(boundary_path, 0)
+    # xcx = cv2.imread(xcx_path, 0)
+    # img = cv2.imread(img_path, 0)
+    # boundary = cv2.imread(boundary_path, 0)
 
-    plt.figure()
-    plt.subplot(131),plt.imshow(img)
-    plt.subplot(132),plt.imshow(boundary)
-    plt.subplot(133),plt.imshow(xcx)
-    plt.show()
+    # plt.figure()
+    # plt.subplot(131),plt.imshow(img, cmap="gray")
+    # plt.subplot(132),plt.imshow(boundary, cmap="gray")
+    # plt.subplot(133),plt.imshow(xcx, cmap="gray")
+    # plt.show()
 
     boundary[boundary != 0] = 1
 
@@ -157,8 +149,8 @@ def water_post(img_path, boundary_path, xcx_path, thresh_iou):  # todo
     # Because the boundary segmentation is not good, first pad the boundary of the boundary
     boundary = padding_img(~boundary, 0)
 
-    boundary_map, num_boundary = label_img(boundary)
-    xcx_map, num_xcx = label_img(xcx)
+    boundary_map, num_boundary = measure.label(boundary, connectivity=1, background=0, return_num=True)
+    xcx_map, num_xcx = measure.label(xcx, connectivity=1, background=0, return_num=True)
 
     for i in range(1, num_xcx + 1):
 
@@ -224,8 +216,12 @@ if __name__ == '__main__':
         pic_xcx_path = xcx_path + "/" + filename
         pic_boundary_path = boundary_path + "/" + filename
         pic_save_path = save_path + "/" + filename
-        
-        water_img = water_post(pic_img_path, pic_boundary_path, pic_xcx_path, thresh_iou)
+
+        xcx = cv2.imread(pic_xcx_path, 0)
+        img = cv2.imread(pic_img_path, 0)
+        boundary = cv2.imread(pic_boundary_path, 0)
+
+        water_img = water_post(img, boundary, xcx, thresh_iou)
         
         water_img = boundary_proc(water_img)
         water_img[water_img > 0] = 255
