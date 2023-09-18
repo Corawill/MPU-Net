@@ -10,11 +10,8 @@ In material science, image segmentation is of great significance for the quantit
 
 ## Environment
 ```
-python 3.6
-pytorch 1.0
-gala (for evaluation)
+pip install -r requirements.txt
 ```
-
 gala is installed according to https://github.com/janelia-flyem/gala.
 
 ## Quick Start
