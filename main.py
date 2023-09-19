@@ -100,12 +100,12 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
         
         print(image_path.name)
         plt.figure(figsize=(20, 20))
-        plt.subplot(2, 3, 1), plt.imshow(img, cmap="gray"), plt.title("img"), plt.axis("off")
-        plt.subplot(2, 3, 2), plt.imshow(label_xcx, cmap="gray"), plt.title("label_xcx"), plt.axis("off") # label xcx
-        plt.subplot(2, 3, 3), plt.imshow(xcx_img, cmap="gray"), plt.title("output_xcx"), plt.axis("off")
-        plt.subplot(2, 3, 4), plt.imshow(label_boundary, cmap="gray"), plt.title("label_boundary"), plt.axis("off")
-        plt.subplot(2, 3, 5), plt.imshow(classical_out_img, cmap="gray"), plt.title("classical_post_out_img"), plt.axis("off")
-        plt.subplot(2, 3, 6), plt.imshow(water_out_img, cmap="gray"), plt.title("ours_out_img"), plt.axis("off")
+        plt.subplot(2, 3, 1), plt.imshow(img, cmap="gray"), plt.title("img", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 2), plt.imshow(label_xcx, cmap="gray"), plt.title("label_xcx", fontsize=30), plt.axis("off") # label xcx
+        plt.subplot(2, 3, 3), plt.imshow(xcx_img, cmap="gray"), plt.title("output_xcx", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 4), plt.imshow(label_boundary, cmap="gray"), plt.title("label_boundary", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 5), plt.imshow(classical_out_img, cmap="gray"), plt.title("classical_post_out_img", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 6), plt.imshow(water_out_img, cmap="gray"), plt.title("ours_out_img", fontsize=30), plt.axis("off")
         plt.show()
 
         cv2.imwrite(str(Path(boundary_path, label_name)), out_img)
@@ -115,9 +115,11 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
 
 
 if __name__ == '__main__':
-    weight_phta_path = './test-pth/OM_best_model_state.pth'
-    infer_path = './data/OM/test_img'
-    save_path = './infer/OM/'
+
+    modality = "FESEM"  # FESEM OM
+    weight_pth_path = f'./test-pth/{modality}_best_model_state.pth'
+    infer_path = f'./data/{modality}/test_img'
+    save_path = f'./infer/{modality}/'
 
     use_post_process = True
-    inference(weight_phta_path, infer_path, save_path, use_post_process)
+    inference(weight_pth_path, infer_path, save_path, use_post_process)
