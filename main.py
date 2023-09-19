@@ -85,7 +85,7 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
             out_img = boundary_proc(out_img)
             xcx_img = xcx_proc(xcx_img)
             water_out_img = water_post(img, out_img, xcx_img, thresh_iou=0.9)
-
+            water_out_img = boundary_proc(water_out_img)
 
         out_img[out_img>0] = 255
         xcx_img[xcx_img>0] = 255
