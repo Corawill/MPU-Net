@@ -100,7 +100,7 @@ def water_grain(i, j, boundary_map, xcx_map, img, thresh_iou):
     if max(label_total)<=256:
         flag = 0
     else:
-        j = j%256
+        j = j % 256
         # Develop a dict to record the data mapping after processing
         label_dict = {}
         for item in label_total:
@@ -140,9 +140,10 @@ def water_post(img, boundary, xcx, thresh_iou):  # todo
     boundary[boundary != 0] = 1
 
     # To achieve more accurate segmentation, first skeleton the boundary
-    skeleton0 = morphology.skeletonize(boundary)
-    skeleton = skeleton0.astype(np.uint8) * 255
-    boundary = boundary.astype(np.uint8)
+    skeleton = morphology.skeletonize(boundary).astype(np.uint8) * 255
+    # skeleton0 = morphology.skeletonize(boundary)
+    # skeleton = skeleton0.astype(np.uint8) * 255
+    # boundary = boundary.astype(np.uint8)
     ret, thresh = cv2.threshold(skeleton, 0, 255, cv2.THRESH_BINARY)
     boundary = thresh
 
@@ -200,7 +201,7 @@ if __name__ == '__main__':
     os.makedirs(save_path, mode=0o777, exist_ok=True) 
 
     files = os.listdir(xcx_path)
-    print(len(files))
+    print(f"Analyzing {len(files)} files")
     print(files)
 
     for filename in files:

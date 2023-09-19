@@ -84,10 +84,8 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
             classical_out_img = classical_boundary_proc(out_img) # classical_boundary_proc
             out_img = boundary_proc(out_img)
             xcx_img = xcx_proc(xcx_img)
-            out_img[out_img>0] = 255
-            xcx_img[xcx_img>0] = 255
             water_out_img = water_post(img, out_img, xcx_img, thresh_iou=0.9)
-            water_out_img = boundary_proc(water_out_img)
+
 
         out_img[out_img>0] = 255
         xcx_img[xcx_img>0] = 255
@@ -102,17 +100,14 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
         
         print(image_path.name)
         plt.figure(figsize=(20, 20))
-        plt.subplot(2, 3, 1), plt.imshow(img, cmap="gray"), plt.title("img"), plt.axis("off")
-        plt.subplot(2, 3, 2), plt.imshow(label_xcx, cmap="gray"), plt.title("label_xcx"), plt.axis("off") # label xcx
-        plt.subplot(2, 3, 3), plt.imshow(xcx_img, cmap="gray"), plt.title("output_xcx"), plt.axis("off")
-        plt.subplot(2, 3, 4), plt.imshow(label_boundary, cmap="gray"), plt.title("label_boundary"), plt.axis("off")
-        plt.subplot(2, 3, 5), plt.imshow(classical_out_img, cmap="gray"), plt.title("classical_post_out_img"), plt.axis("off")
-        plt.subplot(2, 3, 6), plt.imshow(water_out_img, cmap="gray"), plt.title("ours_out_img"), plt.axis("off")
+        plt.subplot(2, 3, 1), plt.imshow(img, cmap="gray"), plt.title("img", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 2), plt.imshow(label_xcx, cmap="gray"), plt.title("label_xcx", fontsize=30), plt.axis("off") # label xcx
+        plt.subplot(2, 3, 3), plt.imshow(xcx_img, cmap="gray"), plt.title("output_xcx", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 4), plt.imshow(label_boundary, cmap="gray"), plt.title("label_boundary", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 5), plt.imshow(classical_out_img, cmap="gray"), plt.title("classical_post_out_img", fontsize=30), plt.axis("off")
+        plt.subplot(2, 3, 6), plt.imshow(water_out_img, cmap="gray"), plt.title("ours_out_img", fontsize=30), plt.axis("off")
         plt.show()
 
-        # 把推理结果存下来看看。
-
-        # cv2.imwrite('./post2/FESEM/boundary/'+label_name,)
         cv2.imwrite(str(Path(boundary_path, label_name)), out_img)
         cv2.imwrite(str(Path(xcx_path, label_name)), xcx_img)
 
@@ -120,10 +115,11 @@ def inference(weight_path, root_path, save_path, use_post_process = False):
 
 
 if __name__ == '__main__':
-    mode = "FESEM" # OM
-    weight_phta_path = './test-pth/'+mode+'_best_model_state.pth'
-    infer_path = './data/'+mode+'/test_img'
-    save_path = './infer/'+mode+'/'
+
+    modality = "FESEM"  # FESEM OM
+    weight_pth_path = f'./test-pth/{modality}_best_model_state.pth'
+    infer_path = f'./data/{modality}/test_img'
+    save_path = f'./infer/{modality}/'
 
     use_post_process = True
-    inference(weight_phta_path, infer_path, save_path, use_post_process)
+    inference(weight_pth_path, infer_path, save_path, use_post_process)

@@ -365,5 +365,5 @@ if __name__ == '__main__':
     data_path = Path(cwd, "data", "FESEM")
     parameters_path = Path(cwd, "experiment")
        
-    use_preprocess = False #Set to True in the first round to generate the weight map
+    use_preprocess = False # Set to True in the first round to generate the weight map
     seg_trainer.start_training(data_path, parameters_path, use_preprocess)
