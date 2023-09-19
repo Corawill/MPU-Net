@@ -193,10 +193,10 @@ def water_post(img, boundary, xcx, thresh_iou):  # todo
 if __name__ == '__main__':
     today = datetime.date.today()
     thresh_iou = 0.9
-    boundary_path = './post/OM/boundary'
-    xcx_path = './post/OM/xcx'
+    boundary_path = './infer/OM/boundary'
+    xcx_path = './infer/OM/xcx'
     img_path =  './data/OM/test_img'
-    save_path = './post/OM/water'+ '-' + str(thresh_iou)+"/"
+    save_path = './infer/OM/test-water'+ '-' + str(thresh_iou)+"/"
     os.makedirs(save_path, mode=0o777, exist_ok=True) 
 
     files = os.listdir(xcx_path)
