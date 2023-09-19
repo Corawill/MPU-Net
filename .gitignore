@@ -3,3 +3,4 @@ test-pth/
 **/__pycache__
 *.pyc
 model/nets/__pycache__/mpunet.cpython-38.pyc
+infer/
