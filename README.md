@@ -23,7 +23,7 @@ python main.py
 python train.py
 ```
 Pre-train parameters download:
-For wpunet segmentation, you can download at [Baidu Pan](https://pan.baidu.com/s/1whXOvudL8j6LfoGE19dEqg) (The key is 'ai3d').
+For wpunet segmentation, you can download at [Baidu Pan](https://pan.baidu.com/s/1whXOvudL8j6LfoGE19dEqg) (The key is 'ai3d') or [Google Drive](https://drive.google.com/drive/folders/1Q4r6BJ0bmORdyFzne0ivF0o9MfhElaR7?usp=sharing).
 
 ## Results
 The example results of MPU-Net algorithm is shown as follows:
